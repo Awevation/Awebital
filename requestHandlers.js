@@ -54,13 +54,6 @@ function show(response) {
     showImage(response);
 }
 
-function favi() {
-    fs.readFile("../favicon.ico", "binary", function(err, data) {
-	if (err) throw err;
-	return data;
-    });
-};
-
 exports.start = start;
 exports.upload = upload;
 exports.show = show;

@@ -1,1 +1,7 @@
-console.log("hey there");
+$(document).ready(function() {
+    main();
+});
+
+function main() {
+    console.log("poosticks");
+}
