@@ -1,7 +1,26 @@
 var queryString = require("querystring"),
     fs = require("fs"),
-    formidable = require("formidable");
+    formidable = require("formidable"),
+    http = require("http"),
+    events = require("events");
 
+var twitterClient = http.createClient(80, "api.twitter.com"),
+    tweetEmitter = new events.EventEmitter();
+
+function getTweets() {
+    var request = twitterClient.request("GET", "/1/statuses/public_timeline.json", {"host": "api.twitter.com"});
+
+    request.addListener("response", function(response) {
+	var body = "";
+	response.addListener("data", function(data) {
+	    body += data;
+	});
+    });
+
+    request.end();
+}
+
+setInterval(getTweets, 5000);
 function start(response, postData) {
   console.log("Request handler 'start' was called.");
 
@@ -54,6 +73,25 @@ function show(response) {
     showImage(response);
 }
 
+function streamTweet(response) {
+    var listener = tweetEmitter.addListener("tweets", function(tweets) {  
+	response.writeHeader(200, { "Content-Type" : "text/plain" });  
+	response.write(JSON.stringify(tweets));  
+	response.close();
+
+	clearTimeout(timeout);  
+    });
+
+    var timeout = setTimeout(function() {  
+	response.writeHeader(200, { "Content-Type" : "text/plain" });  
+	response.write(JSON.stringify([]));  
+	response.end();  	
+
+	tweetEmitter.removeListener(listener);  
+    }, 10000);
+}
+
 exports.start = start;
 exports.upload = upload;
 exports.show = show;
+exports.streamTweet = streamTweet;
